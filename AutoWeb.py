@@ -129,7 +129,7 @@ class WebsiteGenerator:
         # Dropdown menus
         self.create_dropdown(main_frame, "Style:", ["Modern Blue", "Elegant Green", "Vibrant Orange"], 4)
         self.create_dropdown(main_frame, "Font:", ["Arial", "Roboto", "Open Sans"], 5)
-        self.create_dropdown(main_frame, "Text-Align", ["Left", "Center", "Right" , "Justify"], 6)
+        self.create_dropdown(main_frame, "Layout:", ["Standard", "Centered", "Wide"], 6)
 
         # Buttons
         self.add_section_button = ttk.Button(main_frame, text="Add Custom Section", command=self.add_custom_section, style='Custom.TButton')
@@ -237,8 +237,12 @@ class WebsiteGenerator:
 
         colors = color_schemes[style_choice]
 
-       
-        font = font_choice
+        fonts = {
+          1: "'Helvetica Neue', Arial, sans-serif",
+          2: "'Roboto', 'Open Sans', sans-serif",
+          3: "'Lato', 'Montserrat', sans-serif"
+        }
+        font = fonts[font_choice]
 
         layouts = {
          1: "max-width: 1200px; margin: 0 auto; padding: 0 20px;",
@@ -264,7 +268,7 @@ class WebsiteGenerator:
           box-sizing: border-box;
          }}
          body {{
-          font: {font};
+          font-family: {font};
           line-height: 1.6;
           color: var(--text-color);
           background-color: var(--bg-color);
