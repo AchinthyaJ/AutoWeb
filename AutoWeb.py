@@ -433,7 +433,7 @@ class WebsiteGenerator:
         self.result_text.insert(tk.END, "Website generated successfully!\n")
         self.result_text.insert(tk.END, "HTML file saved as 'index.html'.\n")
         self.result_text.insert(tk.END, "Opening in web browser....\n")
-        self.result_text.insert(tk.END, "Opening Code file in web browser.")
+        
 
         # Start a simple HTTP server in a separate thread
         server_thread = threading.Thread(target=self.start_server)
