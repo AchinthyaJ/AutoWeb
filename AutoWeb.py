@@ -7,7 +7,7 @@ import json
 import threading
 
 
-def generate_html(title, header, info, style, custom_sections):
+def generate_html(title, header, info, style, custom_sections, iconlink):
     sections_html = ""
     for section in custom_sections:
         sections_html += f"""
@@ -24,7 +24,7 @@ def generate_html(title, header, info, style, custom_sections):
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{title}</title>
-    
+    <link rel="icon" href={iconlink}>
     <style>
         {style}
     </style>
@@ -93,6 +93,7 @@ def generate_html(title, header, info, style, custom_sections):
 </html>
 """
 
+
 class WebsiteGenerator:
     def __init__(self, master):
         self.master = master
@@ -128,7 +129,7 @@ class WebsiteGenerator:
         self.create_input_field(main_frame, "Icon link:", 4)
 
         # Dropdown menus
-        self.create_dropdown(main_frame, "Main Color:", ["Modern Blue", "Elegant Green", "Vibrant Orange"], 5)
+        self.create_dropdown(main_frame, "Color:", ["Modern Blue", "Elegant Green", "Vibrant Orange"], 5)
         update = ttk.Label(main_frame, text="Styles will be added soon", font=('', 12, 'bold'), background="#f0f0f0")
         update.grid(row=9, column=0, columnspan=2, pady=(0, 20))
         self.create_dropdown(main_frame, "Font:", ["Arial", "Roboto", "Open Sans"], 7)
@@ -204,8 +205,9 @@ class WebsiteGenerator:
         title = self.website_title_entry.get()
         header = self.header_text_entry.get()
         info = self.website_info_entry.get()
+        iconlink = self.icon_link_entry.get()
         
-        style_choice = self.style_dropdown.current() + 1
+        style_choice = self.color_dropdown.current() + 1
         font_choice = self.font_dropdown.current() + 1
         layout_choice = self.layout_dropdown.current() + 1
 
@@ -423,7 +425,7 @@ class WebsiteGenerator:
          }}
         """
 
-        html_content = generate_html(title, header, info, style, self.custom_sections)
+        html_content = generate_html(title, header, info, style, self.custom_sections, iconlink)
         with open("Code.txt","w+") as file:
             file.write(html_content)
         with open("index.html", "w+") as file:
