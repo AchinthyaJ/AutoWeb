@@ -7,7 +7,7 @@ import json
 import threading
 
 
-def generate_html(title, header, info, style, custom_sections, iconlink):
+def generate_html(title, header, info, style, custom_sections, iconlink, bootstrap):
     sections_html = ""
     for section in custom_sections:
         sections_html += f"""
@@ -25,7 +25,7 @@ def generate_html(title, header, info, style, custom_sections, iconlink):
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{title}</title>
     <link rel="icon" href={iconlink}>
-    
+    {bootstrap}
     <style>
         {style}
     </style>
@@ -96,7 +96,7 @@ def generate_html(title, header, info, style, custom_sections, iconlink):
 
 
 class WebsiteGenerator:
-    def __init__(self, master):
+    def __init__(self, master, bootstrap):
         self.master = master
         master.title("Custom Website Generator")
         master.geometry("900x700")
@@ -135,6 +135,11 @@ class WebsiteGenerator:
         update.grid(row=9, column=0, columnspan=2, pady=(0, 20))
         self.create_dropdown(main_frame, "Font:", ["Arial", "Roboto", "Open Sans"], 7)
         self.create_dropdown(main_frame, "Layout:", ["Standard", "Centered", "Wide"], 8)
+        self.create_dropdown(main_frame, "Add Bootstrap:", ["Yes", "No"], 13)
+        bootstrap = self.add_bootstrap_dropdown()
+        if bootstrap == 1:
+            self.create_dropdown(main_frame, "Add Navbar:", ["Yes", "No"], 14)
+            
 
         # Buttons
         self.add_section_button = ttk.Button(main_frame, text="Add Custom Section", command=self.add_custom_section, style='Custom.TButton')
@@ -211,7 +216,11 @@ class WebsiteGenerator:
         style_choice = self.color_dropdown.current() + 1
         font_choice = self.font_dropdown.current() + 1
         layout_choice = self.layout_dropdown.current() + 1
+        bootstrap = self.add_bootstrap_dropdown.current() + 1
 
+        if bootstrap == 1:
+            bootstrap = """<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">"""
+            navbar = self.add_navbar_dropsown.current()+ 1
         # Define color schemes
         # Define color schemes
         color_schemes = {
@@ -426,7 +435,7 @@ class WebsiteGenerator:
          }}
         """
 
-        html_content = generate_html(title, header, info, style, self.custom_sections, iconlink)
+        html_content = generate_html(title, header, info, style, self.custom_sections, iconlink, bootstrap)
         with open("Code.txt","w+") as file:
             file.write(html_content)
         with open("index.html", "w+") as file:
