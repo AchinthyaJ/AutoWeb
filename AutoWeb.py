@@ -32,16 +32,7 @@ def generate_html(title, header, info, style, custom_sections, iconlink, bootstr
 </head>
 <body>
     <header>
-        <nav>
-            <ul>
-                <li><a href="#home">Home</a></li>
-                <li><a href="#about">About</a></li>
-                <li><a href="#services">Services</a></li>
-                <li><a href="#contact">Contact</a></li>
-                {"".join(f'<li><a href="#{section["id"]}">{section["title"]}</a></li>' for section in custom_sections)}
-            </ul>
-        </nav>
-        <h1>{header}</h1>
+        
     </header>
     
     <section id="home" class="hero">
@@ -220,7 +211,62 @@ class WebsiteGenerator:
 
         if bootstrap == 1:
             bootstrap = """<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">"""
-            navbar = self.add_navbar_dropsown.current()+ 1
+            navbar = self.add_navbar_dropdown.current()+ 1
+            if navbar == 1:
+                navbar = """<nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">{header}</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+             <a class="nav-link active" aria-current="page" href="#">Home</a>
+               </li>
+               <li class="nav-item">
+                <a class="nav-link" href="#about">About</a>
+               </li>
+                <li class="nav-item">
+                 <a class="nav-link" href="#services">Services</a>
+                </li>
+                <li class="nav-item">
+                {"".join(f'<li><a href="#{section["id"]}">{section["title"]}</a></li>' for section in custom_sections)}
+                 </li>
+                 <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  More
+                </a>
+                 <ul class="dropdown-menu">
+                 <li><a class="dropdown-item" href="#">Login</a></li>
+                 <li><a class="dropdown-item" href="#">Sign Up</a></li>
+                 <li><hr class="dropdown-divider"></li>
+            
+                </ul>
+                
+                <li class="nav-item">
+                  <a class="nav-link disabled" aria-disabled="true">Disabled</a>
+                 </li>
+                
+                  <form class="d-flex" role="search">
+                    <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                    <button class="btn btn-outline-success" type="submit">Search</button>
+                  </form>
+               </div>
+              </div>
+             </nav>""" 
+            else:
+                navbar="""<nav>
+            <ul>
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#contact">Contact</a></li>
+                {"".join(f'<li><a href="#{section["id"]}">{section["title"]}</a></li>' for section in custom_sections)}
+            </ul>
+        </nav>
+        <h1>{header}</h1>"""
+ 
         # Define color schemes
         # Define color schemes
         color_schemes = {
