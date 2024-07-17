@@ -7,7 +7,7 @@ import json
 import threading
 
 
-def generate_html(title, header, info, style, custom_sections, iconlink, bootstrap):
+def generate_html(title, header, info, style, custom_sections, iconlink, bootstrap_entry, navbar_entry):
     sections_html = ""
     for section in custom_sections:
         sections_html += f"""
@@ -25,14 +25,14 @@ def generate_html(title, header, info, style, custom_sections, iconlink, bootstr
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{title}</title>
     <link rel="icon" href={iconlink}>
-    {bootstrap}
+    {bootstrap_entry}
     <style>
         {style}
     </style>
 </head>
 <body>
     <header>
-        
+       {navbar_entry} 
     </header>
     
     <section id="home" class="hero">
@@ -87,7 +87,7 @@ def generate_html(title, header, info, style, custom_sections, iconlink, bootstr
 
 
 class WebsiteGenerator:
-    def __init__(self, master, bootstrap):
+    def __init__(self, master):
         self.master = master
         master.title("Custom Website Generator")
         master.geometry("900x700")
@@ -126,28 +126,27 @@ class WebsiteGenerator:
         update.grid(row=9, column=0, columnspan=2, pady=(0, 20))
         self.create_dropdown(main_frame, "Font:", ["Arial", "Roboto", "Open Sans"], 7)
         self.create_dropdown(main_frame, "Layout:", ["Standard", "Centered", "Wide"], 8)
-        self.create_dropdown(main_frame, "Add Bootstrap:", ["Yes", "No"], 13)
-        bootstrap = self.add_bootstrap_dropdown()
-        if bootstrap == 1:
-            self.create_dropdown(main_frame, "Add Navbar:", ["Yes", "No"], 14)
+        self.create_dropdown(main_frame, "Add Bootstrap:", ["Yes", "No"], 10)
+        self.create_dropdown(main_frame, "Add Navbar:", ["Yes", "No"], 11)
+        
             
 
         # Buttons
         self.add_section_button = ttk.Button(main_frame, text="Add Custom Section", command=self.add_custom_section, style='Custom.TButton')
-        self.add_section_button.grid(row=10, column=0, columnspan=2, pady=20)
+        self.add_section_button.grid(row=12, column=0, columnspan=2, pady=20)
         
         def open_browser():
             webbrowser.open('http://localhost:8000')
         
         
         self.generate_button = ttk.Button(main_frame, text="Generate Website", command=lambda: [self.generate_website(),open_browser()], style='Custom.TButton')
-        self.generate_button.grid(row=11, column=0, columnspan=2, pady=(0, 20))
+        self.generate_button.grid(row=13, column=0, columnspan=2, pady=(0, 20))
          
         
 
         # Result text area
         self.result_text = scrolledtext.ScrolledText(main_frame, wrap=tk.WORD, width=70, height=10, font=('Helvetica', 12))
-        self.result_text.grid(row=12, column=0, columnspan=2, padx=5, pady=5)
+        self.result_text.grid(row=14, column=0, columnspan=2, padx=5, pady=5)
 
     def create_input_field(self, parent, label, row):
         ttk.Label(parent, text=label).grid(row=row, column=0, sticky="w", padx=5, pady=5)
@@ -207,13 +206,15 @@ class WebsiteGenerator:
         style_choice = self.color_dropdown.current() + 1
         font_choice = self.font_dropdown.current() + 1
         layout_choice = self.layout_dropdown.current() + 1
-        bootstrap = self.add_bootstrap_dropdown.current() + 1
+        bootstrap_choice = self.add_bootstrap_dropdown.current() + 1
+       
+            
 
-        if bootstrap == 1:
-            bootstrap = """<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">"""
+        if bootstrap_choice == 1:
+            bootstrap_entry = """<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">"""
             navbar = self.add_navbar_dropdown.current()+ 1
             if navbar == 1:
-                navbar = """<nav class="navbar navbar-expand-lg bg-body-tertiary">
+                navbar_entry = """<nav class="navbar navbar-expand-lg bg-body-tertiary">
   <div class="container-fluid">
     <a class="navbar-brand" href="#">{header}</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -256,7 +257,7 @@ class WebsiteGenerator:
               </div>
              </nav>""" 
             else:
-                navbar="""<nav>
+                navbar_entry="""<nav>
             <ul>
                 <li><a href="#home">Home</a></li>
                 <li><a href="#about">About</a></li>
@@ -481,7 +482,7 @@ class WebsiteGenerator:
          }}
         """
 
-        html_content = generate_html(title, header, info, style, self.custom_sections, iconlink, bootstrap)
+        html_content = generate_html(title, header, info, style, self.custom_sections, iconlink, bootstrap_entry, navbar_entry)
         with open("Code.txt","w+") as file:
             file.write(html_content)
         with open("index.html", "w+") as file:
