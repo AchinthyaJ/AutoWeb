@@ -89,7 +89,7 @@ def generate_html(title, header, info, style, custom_sections, iconlink, bootstr
 class WebsiteGenerator:
     def __init__(self, master):
         self.master = master
-        master.title("Custom Website Generator")
+        master.title("AutoWeb")
         master.geometry("900x700")
         master.configure(bg="#f0f0f0")
 
@@ -127,26 +127,29 @@ class WebsiteGenerator:
         self.create_dropdown(main_frame, "Font:", ["Arial", "Roboto", "Open Sans"], 7)
         self.create_dropdown(main_frame, "Layout:", ["Standard", "Centered", "Wide"], 8)
         self.create_dropdown(main_frame, "Add Bootstrap:", ["Yes", "No"], 10)
-        self.create_dropdown(main_frame, "Add Navbar:", ["Yes", "No"], 11)
+        update = ttk.Label(main_frame, text="Rest are related to Bootstrap", font=('', 11, 'bold'), background="#f0f0f0")
+        update.grid(row=9, column=0, columnspan=2, pady=(0, 20))
+        self.create_dropdown(main_frame, "Add Navbar:", ["Yes", "No"], 12)
+        self.create_dropdown(main_frame, "Add SlideShow:", ["Yes", "No"], 13)
         
             
 
         # Buttons
         self.add_section_button = ttk.Button(main_frame, text="Add Custom Section", command=self.add_custom_section, style='Custom.TButton')
-        self.add_section_button.grid(row=12, column=0, columnspan=2, pady=20)
+        self.add_section_button.grid(row=14, column=0, columnspan=2, pady=20)
         
         def open_browser():
             webbrowser.open('http://localhost:8000')
         
         
         self.generate_button = ttk.Button(main_frame, text="Generate Website", command=lambda: [self.generate_website(),open_browser()], style='Custom.TButton')
-        self.generate_button.grid(row=13, column=0, columnspan=2, pady=(0, 20))
+        self.generate_button.grid(row=15, column=0, columnspan=2, pady=(0, 20))
          
         
 
         # Result text area
         self.result_text = scrolledtext.ScrolledText(main_frame, wrap=tk.WORD, width=70, height=10, font=('Helvetica', 12))
-        self.result_text.grid(row=14, column=0, columnspan=2, padx=5, pady=5)
+        self.result_text.grid(row=16, column=0, columnspan=2, padx=5, pady=5)
 
     def create_input_field(self, parent, label, row):
         ttk.Label(parent, text=label).grid(row=row, column=0, sticky="w", padx=5, pady=5)
