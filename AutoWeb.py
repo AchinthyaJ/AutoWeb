@@ -1,23 +1,25 @@
-import tkinter as tk
-from tkinter import ttk, scrolledtext
+import customtkinter
 import http.server
 import socketserver
 import webbrowser
 import threading
+
+# Set the appearance and default color theme for the app
+customtkinter.set_appearance_mode("Dark")
+customtkinter.set_default_color_theme("blue")
 
 class Theme:
     MODERN = 'Modern'
     MINIMAL = 'Minimal'
     CREATIVE = 'Creative'
 
-# Themes apply to generated website only
-
-def generate_html(theme, title, header, info, sections, icon_url):
-    # Navigation links
+def generate_html(theme, title, header, info, sections, icon_url, include_login):
+    # This function remains unchanged as it only generates HTML content
     nav_items = ['Home','About','Services','Contact'] + [sec['title'] for sec in sections]
+    if include_login:
+        nav_items.append('Login')
     nav_links = ''.join(f'<a href="#{item.lower()}">{item}</a>' for item in nav_items)
 
-    # Default & custom sections
     default_sections = f"""
     <section id="about" class="editable-section">
       <h2>About Us <button class="edit-btn">Edit</button></h2>
@@ -39,55 +41,61 @@ def generate_html(theme, title, header, info, sections, icon_url):
     </section>
     """ for sec in sections)
 
-    # CSS per theme
+    login_overlay = """
+    <div id=\"login-overlay\" style=\"display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:1000;\">
+      <div style=\"position:relative;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:2rem;border-radius:8px;width:300px;text-align:center;\">
+        <h2>Login</h2>
+        <input type=\"text\" placeholder=\"Username\" style=\"width:90%;padding:8px;margin:8px 0;\"><br>
+        <input type=\"password\" placeholder=\"Password\" style=\"width:90%;padding:8px;margin:8px 0;\"><br>
+        <button onclick=\"hideLogin()\" style=\"margin-top:1rem;padding:6px 12px;\">Close</button>
+      </div>
+    </div>
+    """ if include_login else ""
+
+    login_button = "<button onclick=\"showLogin()\" style=\"position:fixed;top:1rem;right:1rem;padding:8px 12px;z-index:999;background:#0ff;color:#111;border:none;border-radius:6px;cursor:pointer;\">Login</button>" if include_login else ""
+
     if theme == Theme.MODERN:
         css = """
         body{margin:0;font-family:sans-serif;background:#111;color:#eee;}
-        nav{display:flex;gap:1rem;padding:1rem;background:#222;position:sticky;top:0;}
-        nav a{color:#0ff;text-decoration:none;font-weight:500;}
+        nav{display:flex;gap:1rem;padding:1rem;background:#222;position:sticky;top:0;z-index:999;}
+        nav a{color:#0ff;text-decoration:none;}
         .hero{height:60vh;display:flex;flex-direction:column;justify-content:center;align-items:center;
-              background:linear-gradient(45deg,#00ffff,#1e1e2f);animation:fade 5s infinite alternate;color:#111;text-shadow:1px 1px 2px #000;}
+              background:linear-gradient(45deg,#00ffff,#1e1e2f);animation:fade 5s infinite alternate;}
         @keyframes fade{0%{opacity:1;}100%{opacity:0.7;}}
-        main{padding:2rem;background:#111;}
-        section{margin-bottom:2rem;padding:1.5rem;background:#222;border-radius:8px;transition:background 0.3s;}
-        section:hover{background:#333;}
-        footer{text-align:center;padding:1rem;background:#222;color:#ccc;}
+        main{padding:2rem;}
+        section{margin-bottom:2rem;padding:1rem;background:#222;border-radius:8px;}
+        footer{text-align:center;padding:1rem;background:#222;}
         .edit-btn{margin-left:10px;padding:4px 8px;background:#0ff;color:#111;border:none;cursor:pointer;border-radius:4px;}
         .edit-btn:disabled{opacity:0.5;cursor:default;}
         .edited{border:2px solid #0ff;}
-        a:hover{opacity:0.7;}
         """
     elif theme == Theme.MINIMAL:
         css = """
         body{margin:0;font-family:system-ui;background:#121212;color:#e0e0e0;}
-        nav{display:flex;gap:1rem;padding:1rem;background:#1f1f1f;position:sticky;top:0;}
-        nav a{color:#e0e0e0;text-decoration:none;font-weight:500;}
+        nav{display:flex;gap:1rem;padding:1rem;background:#1f1f1f;position:sticky;top:0;z-index:999;}
+        nav a{color:#e0e0e0;text-decoration:none;}
         .hero{padding:4rem;text-align:center;background:#181818;}
-        main{padding:2rem;max-width:800px;margin:0 auto;background:#121212;}
-        section{margin-bottom:2rem;padding:1.5rem;background:#1f1f1f;border-radius:4px;transition:border 0.3s;}
-        section:hover{border:1px solid #444;}
-        footer{text-align:center;padding:1rem;color:#888;background:#1f1f1f;}
+        main{padding:2rem;max-width:800px;margin:0 auto;}
+        section{margin-bottom:2rem;padding:1rem;background:#1f1f1f;border-radius:4px;}
+        footer{text-align:center;padding:1rem;background:#1f1f1f;color:#888;}
         .edit-btn{margin-left:10px;padding:4px 8px;background:#444;color:#e0e0e0;border:none;cursor:pointer;border-radius:4px;}
         .edit-btn:disabled{opacity:0.5;cursor:default;}
         .edited{border:2px dashed #888;}
-        a:hover{opacity:0.7;}
         """
-    else:
+    else: # Creative Theme
         css = """
         body{margin:0;font-family:'Comic Sans MS',cursive;background:#f7f0f5;color:#2d1a3a;}
-        nav{display:flex;gap:1rem;padding:1rem;background:#ffccee;border-bottom:3px solid #ff66cc;position:sticky;top:0;}
+        nav{display:flex;gap:1rem;padding:1rem;background:#ffccee;border-bottom:3px solid #ff66cc;position:sticky;top:0;z-index:999;}
         nav a{color:#2d1a3a;text-decoration:none;font-size:1.1rem;}
-        .hero{padding:5rem;text-align:center;background:url('https://picsum.photos/seed/pix/1200/400')center/cover;color:#fff;}
+        .hero{padding:5rem;text-align:center;background:url('https://picsum.photos/seed/pix/1200/400') center/cover;color:#fff;text-shadow:1px 1px 3px #000;}
         main{padding:2rem;}
         section{margin-bottom:2rem;border:2px dashed #ff66cc;padding:1rem;border-radius:8px;}
         footer{text-align:center;padding:1rem;background:#ffccee;}
         .edit-btn{margin-left:10px;padding:4px 8px;background:#ff66cc;color:#fff;border:none;cursor:pointer;border-radius:4px;}
         .edit-btn:disabled{opacity:0.5;cursor:default;}
         .edited{border:2px dashed #ff66cc;}
-        a:hover{opacity:0.7;}
         """
 
-    # JavaScript for in-place editing
     js = """
     document.querySelectorAll('.edit-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -102,10 +110,11 @@ def generate_html(theme, title, header, info, sections, icon_url):
         }, { once: true });
       }, { once: true });
     });
+    function showLogin(){document.getElementById('login-overlay').style.display='block';}
+    function hideLogin(){document.getElementById('login-overlay').style.display='none';}
     """
 
-    # Assemble HTML
-    html = f"""
+    html_template = f"""
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -117,106 +126,162 @@ def generate_html(theme, title, header, info, sections, icon_url):
     </head>
     <body>
       <nav>{nav_links}</nav>
-      <section class="hero">
-        <h1>{header}</h1>
-        <p>{info}</p>
-      </section>
+      {login_button}
+      <section class="hero"><h1>{header}</h1><p>{info}</p></section>
       <main>
         {default_sections}
         {custom_html}
       </main>
-      <footer>&copy; {title} {2025}</footer>
+      <footer>&copy; {title} 2025</footer>
+      {login_overlay}
       <script>{js}</script>
     </body>
     </html>
     """
-    return html
+    return html_template
 
-class EnhancedWebsiteGenerator:
+
+class EnhancedWebsiteGenerator(customtkinter.CTk):
     _server_started = False
 
-    def __init__(self, master):
-        self.master = master
-        master.title("AutoWeb Pro")
-        master.geometry("900x600")
+    def __init__(self):
+        super().__init__()
+
+        self.title("AutoWeb Pro")
+        self.geometry("900x600")
+
         self.custom_sections = []
-        self.website_theme = tk.StringVar(value=Theme.MODERN)
+        self.website_theme = customtkinter.StringVar(value=Theme.MODERN)
+        self.include_login = customtkinter.BooleanVar(value=False)
+        
         self.setup_ui()
 
     def setup_ui(self):
-        frame = ttk.Frame(self.master, padding=20)
-        frame.pack(fill='both', expand=True)
+        # The main container now inherits from the root window
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
-        # Theme selector
-        ttk.Label(frame, text="Website Theme:").grid(row=0, column=0, sticky='w')
-        ttk.OptionMenu(frame, self.website_theme, self.website_theme.get(), Theme.MODERN, Theme.MINIMAL, Theme.CREATIVE).grid(row=0, column=1, sticky='ew')
+        # Left-side navigation and configuration panel
+        left_frame = customtkinter.CTkFrame(self, width=300, corner_radius=0)
+        left_frame.grid(row=0, column=0, rowspan=2, sticky="nsew")
+        left_frame.grid_rowconfigure(4, weight=1)
+        
+        logo_label = customtkinter.CTkLabel(left_frame, text="AutoWeb Pro", font=customtkinter.CTkFont(size=20, weight="bold"))
+        logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
+        
+        # --- Input Fields ---
+        self.title_entry = customtkinter.CTkEntry(left_frame, placeholder_text="Website Title")
+        self.title_entry.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
 
-        # Inputs
-        labels = ["Title","Header","Info","Icon URL"]
-        self.entries = {}
-        for i, lbl in enumerate(labels, start=1):
-            ttk.Label(frame, text=f"{lbl}:").grid(row=i, column=0, sticky='w', pady=5)
-            ent = ttk.Entry(frame)
-            ent.grid(row=i, column=1, sticky='ew', pady=5)
-            self.entries[lbl.lower().replace(' ', '_')] = ent
-        frame.columnconfigure(1, weight=1)
+        self.header_entry = customtkinter.CTkEntry(left_frame, placeholder_text="Header Text")
+        self.header_entry.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
 
-        # Buttons
-        ttk.Button(frame, text="Add Section", command=self.add_section).grid(row=6, column=0, pady=10)
-        ttk.Button(frame, text="Generate Site", command=self.generate_site).grid(row=6, column=1, pady=10)
+        self.info_entry = customtkinter.CTkEntry(left_frame, placeholder_text="Info/Subtitle")
+        self.info_entry.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
+        
+        # --- Right-side content and actions panel ---
+        right_frame = customtkinter.CTkFrame(self, corner_radius=10)
+        right_frame.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
+        right_frame.grid_columnconfigure(0, weight=1)
+        right_frame.grid_rowconfigure(0, weight=1)
 
-        # Log area
-        self.log = scrolledtext.ScrolledText(frame, height=8)
-        self.log.grid(row=7, column=0, columnspan=2, sticky='nsew')
+        # Use CTkTabVIew for better organization
+        tabview = customtkinter.CTkTabview(right_frame)
+        tabview.pack(padx=20, pady=10, fill="both", expand=True)
+        tabview.add("Log")
+        tabview.add("Options")
+
+        # --- Log tab ---
+        self.log = customtkinter.CTkTextbox(tabview.tab("Log"), width=400, height=300)
+        self.log.pack(padx=10, pady=10, fill="both", expand=True)
+        self.log.tag_config('success', foreground='#4dff4d') # Bright Green
+        self.log.tag_config('error', foreground='#ff4d4d') # Bright Red
+
+        # --- Options tab ---
+        options_frame = tabview.tab("Options")
+        self.theme_menu = customtkinter.CTkOptionMenu(options_frame, variable=self.website_theme, values=[Theme.MODERN, Theme.MINIMAL, Theme.CREATIVE])
+        self.theme_menu.pack(padx=20, pady=10)
+        
+        self.icon_entry = customtkinter.CTkEntry(options_frame, placeholder_text="Icon URL")
+        self.icon_entry.pack(padx=20, pady=10, fill="x")
+
+        self.login_toggle = customtkinter.CTkSwitch(options_frame, text="Include Login Page", variable=self.include_login)
+        self.login_toggle.pack(padx=20, pady=10)
+        
+        # --- Buttons at the bottom ---
+        button_frame = customtkinter.CTkFrame(self, fg_color="transparent")
+        button_frame.grid(row=1, column=1, padx=20, pady=(0, 20), sticky="ew")
+        button_frame.grid_columnconfigure((0, 1), weight=1)
+        
+        self.add_section_button = customtkinter.CTkButton(button_frame, text="Add Section", height=40, command=self.add_section, corner_radius=20, hover_color="#454545")
+        self.add_section_button.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+        
+        self.generate_button = customtkinter.CTkButton(button_frame, text="Generate Website", height=40, command=self.generate_site, corner_radius=20)
+        self.generate_button.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
+
 
     def add_section(self):
-        win = tk.Toplevel(self.master)
-        win.title("Add Section")
-        ttk.Label(win, text="ID:").grid(row=0, column=0)
-        id_e = ttk.Entry(win); id_e.grid(row=0, column=1)
-        ttk.Label(win, text="Title:").grid(row=1, column=0)
-        t_e = ttk.Entry(win); t_e.grid(row=1, column=1)
-        ttk.Label(win, text="Content:").grid(row=2, column=0)
-        c_e = ttk.Entry(win); c_e.grid(row=2, column=1)
+        # A new Toplevel window for adding a section
+        win = customtkinter.CTkToplevel(self)
+        win.title("Add New Section")
+        win.geometry("400x250")
+
+        id_entry = customtkinter.CTkEntry(win, placeholder_text="Section ID (e.g., 'portfolio')")
+        id_entry.pack(padx=20, pady=10, fill="x")
+
+        title_entry = customtkinter.CTkEntry(win, placeholder_text="Section Title (e.g., 'Our Portfolio')")
+        title_entry.pack(padx=20, pady=10, fill="x")
+
+        content_entry = customtkinter.CTkEntry(win, placeholder_text="Initial content for the section")
+        content_entry.pack(padx=20, pady=10, fill="x")
+        
         def save():
-            sec = {'id':id_e.get().strip(),'title':t_e.get().strip(),'content':c_e.get().strip()}
+            sec = {'id': id_entry.get().strip(), 'title': title_entry.get().strip(), 'content': content_entry.get().strip()}
             if sec['id'] and sec['title']:
                 self.custom_sections.append(sec)
+                self.log.insert("end", f"Section '{sec['title']}' added.\n", 'success')
+            else:
+                self.log.insert("end", "Section ID and Title are required.\n", 'error')
             win.destroy()
-        ttk.Button(win, text="Save", command=save).grid(row=3, column=0, columnspan=2, pady=10)
+            
+        save_button = customtkinter.CTkButton(win, text="Save Section", command=save, corner_radius=20)
+        save_button.pack(padx=20, pady=20)
 
     def generate_site(self):
-        title = self.entries['title'].get().strip()
-        header = self.entries['header'].get().strip()
-        info = self.entries['info'].get().strip()
-        icon = self.entries['icon_url'].get().strip()
+        title = self.title_entry.get().strip()
+        header = self.header_entry.get().strip()
+        info = self.info_entry.get().strip()
+        icon = self.icon_entry.get().strip()
+        
         if not title or not header or not info:
-            self.log.insert(tk.END, "Error: Title, Header, and Info are required\n")
+            self.log.insert("end", "Error: Title, Header, and Info are required\n", 'error')
             return
-        self.log.insert(tk.END, "Generating website...\n")
-        html = generate_html(self.website_theme.get(), title, header, info, self.custom_sections, icon)
-        with open("index.html","w",encoding="utf-8") as f:
+            
+        self.log.insert("end", "Generating website...\n")
+        html = generate_html(self.website_theme.get(), title, header, info, self.custom_sections, icon, self.include_login.get())
+        
+        with open("index.html", "w", encoding="utf-8") as f:
             f.write(html)
-        self.log.insert(tk.END, "index.html created\n")
+        self.log.insert("end", "index.html created successfully!\n", 'success')
 
         if not EnhancedWebsiteGenerator._server_started:
             EnhancedWebsiteGenerator._server_started = True
             threading.Thread(target=self.serve, daemon=True).start()
         else:
-            self.log.insert(tk.END, "Server already running\n")
+            self.log.insert("end", "Server is already running. Refresh your browser.\n")
 
     def serve(self):
         handler = http.server.SimpleHTTPRequestHandler
         socketserver.TCPServer.allow_reuse_address = True
         try:
-            with socketserver.TCPServer(("",8000), handler) as httpd:
-                self.log.insert(tk.END, "Serving at port 8000\n")
+            with socketserver.TCPServer(("", 8000), handler) as httpd:
+                self.log.insert("end", "Serving at http://localhost:8000\n", 'success')
                 webbrowser.open("http://localhost:8000")
                 httpd.serve_forever()
         except OSError as e:
-            self.log.insert(tk.END, f"Server error: {e}\n")
+            self.log.insert("end", f"Server error: {e}\n", 'error')
+
 
 if __name__ == '__main__':
-    root = tk.Tk()
-    app = EnhancedWebsiteGenerator(root)
-    root.mainloop()
+    app = EnhancedWebsiteGenerator()
+    app.mainloop()
